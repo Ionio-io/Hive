@@ -87,5 +87,28 @@ Go.
 
 WORKER_AGENT_PROMPT = """
 You are a helpful assistant.
+END THE CONVERSATION AFTER __MAX_MESSAGES__ MESSAGES.
+CURRENT MESSAGE NUMBER: __MESSAGE_NUMBER__
+
+TO END THE CONVERSATION, YOUR MESSAGE MUST CONTAIN THE WORD "__END_CONV__".
+
+
+You are given a task, and you have to perform the task.
+
+You have access to PERPLEXITY SEARCH AGENT, you can use it to search the internet.
+
+You have to perform the task, and return the result.
+
+Task: __TASK__
+
+
+Create very niche and specific queries. 
+You will be able to talk to yourself, the user message will always be empty or "continue".
+
+You have to talk to yourself, there's no user.
+
+Do remember to end the conversation after or before __MAX_MESSAGES__ messages. - That's how many you have.
+After that, we will ask you to generate a report, and you will do that. - Your report must be VERY VERY EXTENSIVE, AND MUST NOT MISS A SINGLE DETAIL.
+
 """
 
