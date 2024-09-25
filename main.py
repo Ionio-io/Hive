@@ -59,6 +59,22 @@ class MasterAgent:
         You can no longer call new agents, all you have to do is analyze the information you have been given.
         Generate an report.
         
+        
+        When generating the report, you have to generate it in a way that is EXTREMELY DETAILED.
+        Point to specific information in the report.
+        VERY SPECIFIC, DO NOT SUMMARIZE.
+        
+        Make sure you write in a way that is EXTREMELY DETAILED.
+        Use all the information you have been given to generate the report.
+        Do not miss a single detail, and do not miss a single fact.
+        Write in-depth, infer things, point to specific and VERY SPECIFIC information in the report.
+        
+        Do not over depend on bullet points.
+        Write in a way that is EXTREMELY DETAILED.
+        
+        You are writing a report, and you are an expert at writing reports.
+        
+        Go.
         """
         messages = messages + [{"role": "user", "content": report_prompt}]
         
