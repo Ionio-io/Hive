@@ -2,7 +2,6 @@ from rich import print
 
 from clients import openai_client
 from utils import call_openai
-
 from PROMPTS import MASTER_AGENT_PROMPT
 
 
@@ -32,7 +31,9 @@ class MasterAgent:
         
 
 class WorkerAgent:
-    pass
+    def __init__(self, name, prompt):
+        self.name = name
+        self.prompt = prompt
 
 
 if __name__ == "__main__":

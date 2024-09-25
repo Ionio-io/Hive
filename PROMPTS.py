@@ -1,8 +1,8 @@
-TOOLS = [
-    {
-        "name": "Perplexity",
-    }
-]
+from pydantic import BaseModel, Field
+
+class PerplexitySearch(BaseModel):
+    query: str = Field(..., description="Extremely niche and specific query to search for")
+
 
 
 
