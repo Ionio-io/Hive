@@ -11,6 +11,13 @@ def perplexity_search(query: str) -> str:
     
     Your responses are to be detailed, go very wide, and gather as much information as possible.
     If you think there are interesting things the user can learn more about, you can mention them.
+    
+    Please keep in mind you have to research in depth. And in-width, search for as much information as possible.
+    Search for connections between different things.
+    Search for the latest information.
+    
+    Your responses are to be detailed, go very wide, and gather as much information as possible.
+    Extensive responses are encouraged.
     """
     
     
@@ -23,7 +30,7 @@ def perplexity_search(query: str) -> str:
     response = ppxl_client.chat.completions.create(
         model="llama-3.1-sonar-large-128k-online",
         messages=messages,
-        temperature=0.1
+        temperature=0.3
     )
     
     response_text = response.choices[0].message.content

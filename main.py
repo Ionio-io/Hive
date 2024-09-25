@@ -21,6 +21,8 @@ class MasterAgent:
         ]
         response_message = call_openai(messages, client=openai_client, model=self.model)
         
+        self.log(response_message.content+"\n\n")
+        
         agent_instantiations = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
         agent_instantiations = json.loads(agent_instantiations.group(1))
         
@@ -117,6 +119,10 @@ class WorkerAgent:
         return report
     
     def generate_report(self, messages):
+        
+        self.log("Generating report...")
+        self.log(messages)
+        
         report_prompt = f"""
         You are a report generation agent now. 
         

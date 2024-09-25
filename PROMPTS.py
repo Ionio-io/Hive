@@ -145,10 +145,12 @@ Output your thoughts here, some, thoughts, anything you can think of.
 Like what you plan to do, how do you plan to use the agents, what are you thinking, etc.
 
 
-- Analyze the past responses, and use the tools to gather more information. 
+- Analyze the past responses, and use the tools to gather more information.
+- Think what is something that you see, that should be researched further. - This is important.
+- Research iteratively.
 - Remember that if you see something in the reponse of the tool, a thread, that you feel is important, you can research it further and collect more information.
 - Feel free to research anything that might be important. Nothing wrong with using as many messages as needed.
-
+- Always mention here in thougts if you are going to pull a thread or research something in depth. - This is important.
 
 Determine if you can end the conversation using __END_CONV__. - You must always think deeply about this.
 
@@ -164,8 +166,14 @@ __END_CONV__ - You must always use this to end the conversation.
 </OUTPUT>
 
 Remember that if you see something in the reponse of the tool, a thread, that you feel is important, you can research it further and collect more information.
+YOU ARE ENCOURAGED TO RESEARCH THINGS IN DEPTH.
+YOU ARE ENCOURAGED TO ASK MORE FOLLOW UP QUESTIONS ONCE YOU GET A REPONSE.
+PULL THE THREADS AND RESEARCH IN DEPTH.
+
 
 Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.
+
+Dig deeper, always.
 
 NO TEXT IN OUTPUT, either call the tool or end the conversation. Only one of the two.
 
