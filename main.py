@@ -12,7 +12,7 @@ from tools import perplexity_search
 class MasterAgent:
     def __init__(self):
         self.name = "MasterAgent"
-        self.model = "o1-mini"
+        self.model = "o1-preview"
 
     def run(self, user_prompt):
         prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
@@ -20,18 +20,57 @@ class MasterAgent:
             {"role": "user", "content": prompt}
         ]
         response_message = call_openai(messages, client=openai_client, model=self.model)
-        return response_message.content
+        
+        agent_instantiations = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
+        agent_instantiations = json.loads(agent_instantiations.group(1))
+        
+        worker_responses = []
+        for agent in agent_instantiations:
+            worker_agent = self.instantiate_worker(agent["Agent"], agent["Task"])
+            worker_response = worker_agent.run()
+            worker_responses.append({
+                "agent": worker_agent.name,
+                "task": agent["Task"],
+                "response": worker_response
+            })
+        
+        self.generate_report(worker_responses, messages)
     
     def log(self, message):
         print(f"[red][bold]{self.name}[/bold][/red]: {message}")
     
-    def instantiate_worker(self):
-        return WorkerAgent()
+    def instantiate_worker(self, agent_name, task):
+        return WorkerAgent(agent_name, task)
     
-    def start(self, user_prompt):
-        self.log(f"Analyzing company: {user_prompt}")
-        response_message = self.run(user_prompt)
-        print(response_message)
+    def generate_report(self, worker_responses, messages):
+        worker_responses = [f"Agent: {worker_response['agent']}\nTask: {worker_response['task']}\n\nWorker report: {worker_response['response']} \n\n\n" for worker_response in worker_responses]
+        
+        report_prompt = f"""
+        You are a report generation agent now. 
+        
+        KEEP YOUR ORIGINAL TASK IN MIND. - That is still your task.
+        
+        Forget your past format. And generate the report directly.
+        
+        Look at all the past messages and tool call responses.
+        
+        You can no longer call new agents, all you have to do is analyze the information you have been given.
+        Generate an report.
+        
+        """
+        messages = messages + [{"role": "user", "content": report_prompt}]
+        
+        self.log("Generating report...")
+        
+        report_message = call_openai(messages, client=openai_client, model=self.model)
+        
+        self.log("Report generated.")
+        with open("report.md", "w") as report_file:
+            report_file.write(report_message.content)
+        
+        return report_message.content
+        
+
         
 
 class WorkerAgent:
@@ -40,7 +79,7 @@ class WorkerAgent:
         self.task = task
         self.model = "gpt-4o"
         
-    def start(self, max_messages=3):
+    def run(self, max_messages=3):
         current_message_number = 0
         task = self.task
         
@@ -92,6 +131,10 @@ class WorkerAgent:
         The report should be in a markdown format, and should be EXTREMELY DETAILED.
         
         Do not miss a single detail, and do not miss a single fact.
+        
+        Please, be very detailed.
+        Please infer the information from the past messages and tool call responses.
+        Connect different dots, uncover the truth. - This is important.
         
         Create a detailed report of all your findings.
         

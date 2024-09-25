@@ -52,8 +52,6 @@ Start with this, then gather more information as you go.
 
 When you get information, you have to analyze it, and you can then move ahead and create more agents, you don't have to do it all at once.
 
-
-
 Output format:
 <THOUGHTS>
 
@@ -87,6 +85,9 @@ MUST THINK DEEPLY BEFORE STARTING.
 EXTREME DEPTH IN THINKING.
 
 MUST ALWAYS FOLLOW THE FORMAT.
+
+Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report. - Remember this.
+Generate an detailed report. Think and analyze every bit of information, and infer from and tell user what different bits of information mean when combined.
 
 Go.
 """
@@ -143,7 +144,11 @@ Message: x
 Output your thoughts here, some, thoughts, anything you can think of.
 Like what you plan to do, how do you plan to use the agents, what are you thinking, etc.
 
-Analyze the past responses, and use the tools to gather more information. 
+
+- Analyze the past responses, and use the tools to gather more information. 
+- Remember that if you see something in the reponse of the tool, a thread, that you feel is important, you can research it further and collect more information.
+- Feel free to research anything that might be important. Nothing wrong with using as many messages as needed.
+
 
 Determine if you can end the conversation using __END_CONV__. - You must always think deeply about this.
 
@@ -158,6 +163,7 @@ __END_CONV__ - You must always use this to end the conversation.
 
 </OUTPUT>
 
+Remember that if you see something in the reponse of the tool, a thread, that you feel is important, you can research it further and collect more information.
 
 Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.
 
