@@ -1,5 +1,6 @@
 from clients import ppxl_client
-
+import yfinance as yf
+from clients import openai_client
 
 def perplexity_search(query: str) -> str:
     system_message = """
@@ -36,3 +37,51 @@ def perplexity_search(query: str) -> str:
     response_text = response.choices[0].message.content
 
     return response_text
+
+def get_finance_data(ticker: str, period: str, filename: str):
+    ticker = yf.Ticker(ticker)
+    try:
+        hist = ticker.history(period=period)
+        hist.to_csv(filename)  # Save the DataFrame to a CSV file
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        return None
+    
+    return hist
+
+
+def analyse_finance_data(filename: str):
+    # Upload a file with an "assistants" purpose
+    file = openai_client.files.create(
+    file=open(filename, "rb"),
+    purpose='assistants'
+    )
+
+    # Create an assistant using the file ID
+    assistant = openai_client.beta.assistants.create(
+    instructions="You are a financial analyst. Your task is to analyze the financial data provided in the CSV file. You should focus on key financial metrics such as revenue, expenses, profit, and cash flow. Additionally, you should identify any trends or patterns in the data and provide insights.",
+    model="gpt-4o",
+    tools=[{"type": "code_interpreter"}],
+    tool_resources={
+        "code_interpreter": {
+        "file_ids": [file.id]
+        }
+    }
+    )
+
+    thread = openai_client.beta.threads.create(
+    messages=[
+        {
+        "role": "user",
+        "content": "Analyse the given financial statements and provide a report with key financial metrics and explanations.",
+        "attachments": [
+            {
+            "file_id": file.id,
+            "tools": [{"type": "code_interpreter"}]
+            }
+        ]
+        }
+    ]
+    )
+
+    return thread
