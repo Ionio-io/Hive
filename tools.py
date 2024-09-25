@@ -1,21 +1,13 @@
 from clients import ppxl_client
 
 
-def handle_tool_call(tool_call):
-    if tool_call.function.name == "perplexity_search":
-        return perplexity_search(tool_call.function.arguments)
-
-
-
-def perplexity_search(query: str):
+def perplexity_search(query: str) -> str:
     system_message = """
-    You are a helpful assistant that can answer questions. Do not use markdown. 
-    Never return the names of the websites or sources, you can mention the brands and products that the user is looking for. 
-    You can mention the official websites of the brands and products that the user is looking for, but never anything unofficial. 
+    You are a helpful assistant that can answer questions.
+    You are an expert at searching the internet for information.
+    You have to search for what the user tells you in detail.
     
-    IMPORTANT RULE: RETURN ONE PARAGRAPH OF 50 WORDS MAX. NOT MORE THAN THAT, BE VERY CONCISE. 
-    Never send markdown, only plain text. You can send list using new lines and stuff, but no markdown, or html, or any formatting. 
-    YOU MUST NEVER USE MARKDOWN, AND ALWAYS REPLY WITHIN 200 WORDS, BE EXTREMELY SHORT. Just plain text.
+    Format your responses in a way that is easy to understand.
     
     Your responses are to be detailed, go very wide, and gather as much information as possible.
     If you think there are interesting things the user can learn more about, you can mention them.

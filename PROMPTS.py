@@ -5,7 +5,7 @@ class _PerplexitySearch(BaseModel):
 
 
 PERPLEXITY_SEARCH_SCHEMA = {
-    "name": "Perplexity Search",
+    "name": "perplexity_search",
     "description": "Search the internet for information by passing very niche and specific queries.",
     "parameters": _PerplexitySearch.model_json_schema()
 }
@@ -92,12 +92,15 @@ Go.
 """
 
 WORKER_AGENT_PROMPT = f"""
+CURRENT DATE: 25/09/2024
+
 You are a helpful assistant.
 END THE CONVERSATION AFTER __MAX_MESSAGES__ MESSAGES.
 CURRENT MESSAGE NUMBER: __MESSAGE_NUMBER__
 
-TO END THE CONVERSATION, YOUR MESSAGE MUST CONTAIN THE WORD "__END_CONV__".
+TO END THE CONVERSATION, YOUR OUTPUT MUST CONTAIN THE WORD "__END_CONV__".
 
+Even if you have to end the conversation, you must output the  __END_CONV__ word in the <OUTPUT> tag.
 
 You are given a task, and you have to perform the task.
 
@@ -129,6 +132,14 @@ Your output has to be in this format:
 
 <THOUGHTS>
 
+ALWAYS REPEAT TO YOURSELF WHAT MESSAGE YOU ARE ON.
+COUNT YOUR MESSAGES HERE.
+EXTREMELY IMPORTANT THAT YOU COUNT YOUR MESSAGES.
+
+You can just say
+
+Message: x
+
 Output your thoughts here, some, thoughts, anything you can think of.
 Like what you plan to do, how do you plan to use the agents, what are you thinking, etc.
 
@@ -142,9 +153,17 @@ Use 100 words here.
 <OUTPUT>
 
 {{"tool_name": "tool_name", "arguments": {{"arg_name": "arg_value"}}}} - You have to use this format for the tools.
+OR
+__END_CONV__ - You must always use this to end the conversation.
 
 </OUTPUT>
-NO TEXT IN OUTPUT
+
+
+Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.
+
+NO TEXT IN OUTPUT, either call the tool or end the conversation. Only one of the two.
+
+ALWAYS CLOSE BOTH THOUGHTS AND OUTPUT TAGS.
 
 Always output in this format.
 
