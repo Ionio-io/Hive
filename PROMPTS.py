@@ -1,10 +1,16 @@
 from pydantic import BaseModel, Field
 
-class PerplexitySearch(BaseModel):
+class _PerplexitySearch(BaseModel):
     query: str = Field(..., description="Extremely niche and specific query to search for")
 
 
+PERPLEXITY_SEARCH_SCHEMA = {
+    "name": "Perplexity Search",
+    "description": "Search the internet for information by passing very niche and specific queries.",
+    "parameters": _PerplexitySearch.model_json_schema()
+}
 
+TOOLS = [PERPLEXITY_SEARCH_SCHEMA]
 
 
 MASTER_AGENT_PROMPT = """
@@ -85,7 +91,7 @@ MUST ALWAYS FOLLOW THE FORMAT.
 Go.
 """
 
-WORKER_AGENT_PROMPT = """
+WORKER_AGENT_PROMPT = f"""
 You are a helpful assistant.
 END THE CONVERSATION AFTER __MAX_MESSAGES__ MESSAGES.
 CURRENT MESSAGE NUMBER: __MESSAGE_NUMBER__
@@ -105,10 +111,43 @@ Task: __TASK__
 Create very niche and specific queries. 
 You will be able to talk to yourself, the user message will always be empty or "continue".
 
+
+Here are your ONLY tools:
+<TOOLS>
+{TOOLS}
+</TOOLS>
+
+These are your ONLY tools, you can ONLY use these tools.
+
 You have to talk to yourself, there's no user.
 
 Do remember to end the conversation after or before __MAX_MESSAGES__ messages. - That's how many you have.
 After that, we will ask you to generate a report, and you will do that. - Your report must be VERY VERY EXTENSIVE, AND MUST NOT MISS A SINGLE DETAIL.
+
+
+Your output has to be in this format:
+
+<THOUGHTS>
+
+Output your thoughts here, some, thoughts, anything you can think of.
+Like what you plan to do, how do you plan to use the agents, what are you thinking, etc.
+
+Analyze the past responses, and use the tools to gather more information. 
+
+Determine if you can end the conversation using __END_CONV__. - You must always think deeply about this.
+
+Use 100 words here.
+
+</THOUGHTS>
+<OUTPUT>
+
+{{"tool_name": "tool_name", "arguments": {{"arg_name": "arg_value"}}}} - You have to use this format for the tools.
+
+</OUTPUT>
+NO TEXT IN OUTPUT
+
+Always output in this format.
+
 
 """
 

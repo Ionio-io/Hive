@@ -2,7 +2,7 @@ from rich import print
 
 from clients import openai_client
 from utils import call_openai
-from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, PERPLEXITY_SEARCH_PROMPT
+from PROMPTS import MASTER_AGENT_PROMPT, PERPLEXITY_SEARCH_SCHEMA, WORKER_AGENT_PROMPT, PERPLEXITY_SEARCH_PROMPT, PERPLEXITY_SEARCH_TOOL
 from tools import perplexity_search
 
 class MasterAgent:
@@ -38,17 +38,27 @@ class WorkerAgent:
     def run(self, task, max_messages=3):
         prompt = WORKER_AGENT_PROMPT.replace("__TASK__", task).replace("__MESSAGE_NUMBER__", str(self.message_number))
         messages = [
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": prompt}
         ]
+        tools = [
+            PERPLEXITY_SEARCH_SCHEMA
+        ]
+        
         current_message_number = 0
-        while current_message_number < max_messages:
-            response_message = call_openai(messages, client=openai_client, model=self.model)
+        while current_message_number <= max_messages:
+            response_message = call_openai(messages, client=openai_client, model=self.model, tools=[PERPLEXITY_SEARCH_SCHEMA])
+            
+            self.log(response_message.content)
+            
             if response_message.content.lower().strip() == "__end_conv__":
                 break
             messages.append({"role": "assistant", "content": response_message.content})
             self.message_number += 1
-        return response_message.content
         
+        return messages
+    
+    def log(self, message, message_number):
+        print(f"[green][bold]{self.name}[/bold][/green]: {message_number} - {message}")
         
 
 

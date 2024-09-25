@@ -1,6 +1,12 @@
 from clients import ppxl_client
 
 
+def handle_tool_call(tool_call):
+    if tool_call.function.name == "perplexity_search":
+        return perplexity_search(tool_call.function.arguments)
+
+
+
 def perplexity_search(query: str):
     system_message = """
     You are a helpful assistant that can answer questions. Do not use markdown. 
