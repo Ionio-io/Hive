@@ -1,22 +1,15 @@
-
-
+from clients import openai_client
 
 class MasterAgent:
     def __init__(self):
-        self.judge = JudgeAgent()
-        self.worker = WorkerAgent()
+        self.name = "MasterAgent"
+        self.model = "o1-mini"
 
     def run(self, user_prompt):
-        self.judge.run(user_prompt)
-        self.worker.run(self.judge.tasks)
+        self.worker.run(user_prompt)
 
 
 
 
 class WorkerAgent:
-
-
-
-
-class AnalystAgent:
-
+    pass
