@@ -2,17 +2,19 @@ import json
 import re
 
 from rich import print
-
-
+from dotenv import load_dotenv
+load_dotenv()
+from openai import OpenAI
 from clients import openai_client
 from utils import call_openai
 from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT
-from tools import perplexity_search
+from tools import get_finance_data, load_news_from_file, analyse_finance_data, perplexity_search
+client = OpenAI()
 
 class MasterAgent:
     def __init__(self):
         self.name = "MasterAgent"
-        self.model = "o1-preview"
+        self.model = "o1-mini"
 
     def run(self, user_prompt):
         prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
@@ -20,7 +22,15 @@ class MasterAgent:
             {"role": "user", "content": prompt}
         ]
         response_message = call_openai(messages, client=openai_client, model=self.model)
-        
+        response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant who based on the company name give its stock name/symbol as output. only that nothing else. ex., apple - AAPL. that is no other text except name of the stock."},
+            {"role": "user", "content": f"{user_prompt}"}  # Corrected to use f-string for variable substitution
+        ]
+        )
+        stock_name = response.choices[0].message.content
+        print(f"Stock Name: {stock_name}") 
         self.log(response_message.content+"\n\n")
         
         agent_instantiations = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
@@ -35,14 +45,24 @@ class MasterAgent:
                 "task": agent["Task"],
                 "response": worker_response
             })
-        
+        analyst_agent = AnalystAgent(stock_name)  # Pass the company name
+        analyst_response = analyst_agent.run()
+        worker_responses.append({
+            "agent": analyst_agent.name,
+            "task": "Financial Analysis",
+            "response": analyst_response
+        })
         self.generate_report(worker_responses, messages)
     
     def log(self, message):
         print(f"[red][bold]{self.name}[/bold][/red]: {message}")
     
     def instantiate_worker(self, agent_name, task):
-        return WorkerAgent(agent_name, task)
+        if agent_name == "AnalystAgent":
+            return AnalystAgent(task)
+        else:
+            return WorkerAgent(agent_name, task)
+
     
     def generate_report(self, worker_responses, messages):
         worker_responses = [f"Agent: {worker_response['agent']}\nTask: {worker_response['task']}\n\nWorker report: {worker_response['response']} \n\n\n" for worker_response in worker_responses]
@@ -88,8 +108,29 @@ class MasterAgent:
         
         return report_message.content
         
+class AnalystAgent:
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.name = "AnalystAgent_Tools"
 
+    def analyze_financial_data(self):
+        print(f"Analyzing financial data for {self.ticker}")
+        return "Financial analysis report"
+    
+    def run(self):
+        finance_data_filename = f"{self.ticker}_finance_data.csv"
+        news_data_filename = 'news_data.json'
+        get_finance_data(self.ticker, "1y", finance_data_filename)
         
+        news_data = load_news_from_file(news_data_filename)
+        
+        analysis_result = analyse_finance_data(finance_data_filename, news_data)
+        print(analysis_result)
+        
+        return analysis_result
+        
+    def log(self, message):
+        print(f"[blue][bold]{self.name}[/bold][/blue]: {message}")
 
 class WorkerAgent:
     def __init__(self, name, task):
@@ -135,7 +176,6 @@ class WorkerAgent:
         return report
     
     def generate_report(self, messages):
-        
         self.log("Generating report...")
         self.log(messages)
         
@@ -159,7 +199,6 @@ class WorkerAgent:
         Connect different dots, uncover the truth. - This is important.
         
         Create a detailed report of all your findings.
-        
         """
         
         messages = messages + [{"role": "user", "content": report_prompt}]
@@ -172,11 +211,9 @@ class WorkerAgent:
         
     def handle_tool_call(self, tool_call):
         if tool_call["tool_name"] == "perplexity_search":
-            return perplexity_search(tool_call["arguments"]['query'])
+            additional_info = tool_call["arguments"].get('additional_info', '')
+            return perplexity_search(tool_call["arguments"]['query'], additional_info)
     
-    
-
-# if __name__ == "__main__":
-#     master_agent = MasterAgent()
-#     master_agent.start("Apple")
-
+if __name__ == "__main__":
+    master_agent = MasterAgent()
+    master_agent.run("Apple")       
