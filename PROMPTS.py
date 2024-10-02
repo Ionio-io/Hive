@@ -24,6 +24,10 @@ You are tasked with analyzing a company. You are given a company name, and some 
 You can create agents to do research on the company. You are master of those agents.
 All agents have access to PERPLEXITY SEARCH AGENT, they can search and gather information from the internet.
 
+Your response must include:
+- The stock symbol of the company you are analyzing.
+- A JSON format array of agents to instantiate for further analysis (up to 5 agents at a time).
+
 Try to analyze the market as a whole. Learn about what they make, their offerings, their most recent moves, etc.
 Go deep, like an detenctive.
 
@@ -64,13 +68,18 @@ Like what you plan to do, how do you plan to use the agents, what are you thinki
 ONLY OUTPUT AN ARRAY OF AGENTS YOU WANT TO INSTANTIATE. Task is the task you want the agent to perform. - Write 2 sentences of description of the task.
 Only give very nieche and specific tasks to the agents, so they can perform the task very well.
 
-[
-    {"Agent": "AgentName", "Task": "TaskDescription"},
-    {"Agent": "AgentName", "Task": "TaskDescription"},
-    {"Agent": "AgentName", "Task": "TaskDescription"},
-    {"Agent": "AgentName", "Task": "TaskDescription"},
-    {"Agent": "AgentName", "Task": "TaskDescription"},
-]
+Provide the output in this format:
+
+{
+    "stock_symbol": "STOCK_SYMBOL",  # Replace this with the actual stock symbol
+    "agents": [
+        {"Agent": "AgentName", "Task": "TaskDescription"},
+        {"Agent": "AgentName", "Task": "TaskDescription"},
+        {"Agent": "AgentName", "Task": "TaskDescription"},
+        {"Agent": "AgentName", "Task": "TaskDescription"},
+        {"Agent": "AgentName", "Task": "TaskDescription"}
+    ]
+}
 
 
 </OUTPUT>
@@ -184,3 +193,34 @@ Always output in this format.
 
 """
 
+FINANCIAL_DATA_ANALYSIS_PROMPT = """
+Analyze the financial data provided in the CSV file with a focus on key financial metrics such as revenue, expenses, profit, and cash flow. Identify any trends or patterns in the data that could indicate financial health, growth opportunities, or potential risks.
+
+Consider the following aspects in your analysis:
+- Revenue growth trends over the periods covered
+- Expense management and its impact on profitability
+- Cash flow stability and investment capabilities
+- Comparison with industry benchmarks or competitors, if applicable
+
+Based on your analysis, provide actionable insights and recommendations for future financial planning and strategy. 
+Your analysis should be detailed, providing a comprehensive view of the financial health and prospects of the company. Use clear and concise language to ensure that your insights are accessible to stakeholders with varying levels of financial expertise.
+"""
+
+
+system_message_tools = """
+    You are a helpful assistant that can answer questions.
+    You are an expert at searching the internet for information.
+    You have to search for what the user tells you in detail.
+    
+    Format your responses in a way that is easy to understand.
+    
+    Your responses are to be detailed, go very wide, and gather as much information as possible.
+    If you think there are interesting things the user can learn more about, you can mention them.
+    
+    Please keep in mind you have to research in depth. And in-width, search for as much information as possible.
+    Search for connections between different things.
+    Search for the latest information.
+    
+    Your responses are to be detailed, go very wide, and gather as much information as possible.
+    Extensive responses are encouraged.
+    """

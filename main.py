@@ -8,7 +8,7 @@ from openai import OpenAI
 from clients import openai_client
 from utils import call_openai
 from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT
-from tools import get_finance_data, load_news_from_file, analyse_finance_data, perplexity_search
+from tools import get_ticker_data, analyse_finance_data, perplexity_search
 client = OpenAI()
 
 class MasterAgent:
@@ -22,36 +22,48 @@ class MasterAgent:
             {"role": "user", "content": prompt}
         ]
         response_message = call_openai(messages, client=openai_client, model=self.model)
-        response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant who based on the company name give its stock name/symbol as output. only that nothing else. ex., apple - AAPL. that is no other text except name of the stock."},
-            {"role": "user", "content": f"{user_prompt}"}  # Corrected to use f-string for variable substitution
-        ]
-        )
-        stock_name = response.choices[0].message.content
-        print(f"Stock Name: {stock_name}") 
-        self.log(response_message.content+"\n\n")
         
-        agent_instantiations = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
-        agent_instantiations = json.loads(agent_instantiations.group(1))
-        
-        worker_responses = []
-        for agent in agent_instantiations:
-            worker_agent = self.instantiate_worker(agent["Agent"], agent["Task"])
-            worker_response = worker_agent.run()
-            worker_responses.append({
-                "agent": worker_agent.name,
-                "task": agent["Task"],
-                "response": worker_response
-            })
-        analyst_agent = AnalystAgent(stock_name)  # Pass the company name
-        analyst_response = analyst_agent.run()
-        worker_responses.append({
-            "agent": analyst_agent.name,
-            "task": "Financial Analysis",
-            "response": analyst_response
-        })
+        stock_info_match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
+        if stock_info_match:
+            stock_info = json.loads(stock_info_match.group(1))
+            
+            if isinstance(stock_info, dict) and "stock_symbol" in stock_info:
+                stock_symbol = stock_info["stock_symbol"]
+                print(f"Stock Symbol: {stock_symbol}")
+            
+        self.log(response_message.content + "\n\n")
+
+        agent_instantiations_match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
+        if agent_instantiations_match:
+            try:
+                agent_instantiations = json.loads(agent_instantiations_match.group(1))
+                
+                if isinstance(agent_instantiations, dict) and "agents" in agent_instantiations:
+                    worker_responses = []
+                    for agent in agent_instantiations["agents"]:
+                        worker_agent = self.instantiate_worker(agent["Agent"], agent["Task"])
+                        worker_response = worker_agent.run()
+                        worker_responses.append({
+                            "agent": worker_agent.name,
+                            "task": agent["Task"],
+                            "response": worker_response
+                        })
+                    
+                    analyst_agent = AnalystAgent(user_prompt) 
+                    analyst_response = analyst_agent.run(stock_info["stock_symbol"])
+                    worker_responses.append({
+                        "agent": analyst_agent.name,
+                        "task": "Financial Analysis",
+                        "response": analyst_response
+                    })
+                    self.generate_report(worker_responses, messages)
+                else:
+                    print("Unexpected format in agent instantiations.")
+            except json.JSONDecodeError:
+                print("Failed to parse JSON for agent instantiations.")
+        else:
+            print("No agent instantiations found in the response.")
+
         self.generate_report(worker_responses, messages)
     
     def log(self, message):
@@ -109,28 +121,33 @@ class MasterAgent:
         return report_message.content
         
 class AnalystAgent:
-    def __init__(self, ticker):
-        self.ticker = ticker
-        self.name = "AnalystAgent_Tools"
+    def __init__(self, task):
+        self.task = task
+        self.name = "AnalystAgent"
+        self.model = "gpt-4o"
 
-    def analyze_financial_data(self):
-        print(f"Analyzing financial data for {self.ticker}")
-        return "Financial analysis report"
-    
-    def run(self):
-        finance_data_filename = f"{self.ticker}_finance_data.csv"
-        news_data_filename = 'news_data.json'
-        get_finance_data(self.ticker, "1y", finance_data_filename)
+    def run(self, stock_symbol=None):
+        try:
+            finance_data_filename = f"{stock_symbol}_finance_data.csv" if stock_symbol else None
+            print(f"Processing finance data for {stock_symbol}...")
+            full_file_path = get_ticker_data(stock_symbol, "1y", finance_data_filename)    
+            if full_file_path:
+                analysis_result = analyse_finance_data(full_file_path)
+                print(analysis_result)
+                return analysis_result
+            else:
+                return "Failed to process finance data due to an error."
+            
         
-        news_data = load_news_from_file(news_data_filename)
+        except IndexError as e:
+            print(f"Error analyzing financial data: {e}")
+            return f"An error occurred during financial analysis. Please try again with valid input."
         
-        analysis_result = analyse_finance_data(finance_data_filename, news_data)
-        print(analysis_result)
-        
-        return analysis_result
-        
-    def log(self, message):
-        print(f"[blue][bold]{self.name}[/bold][/blue]: {message}")
+        except Exception as e:
+            print(f"Unexpected error analyzing financial data: {e}")
+            return f"An unexpected error occurred during financial analysis: {str(e)}"
+
+
 
 class WorkerAgent:
     def __init__(self, name, task):
@@ -211,9 +228,8 @@ class WorkerAgent:
         
     def handle_tool_call(self, tool_call):
         if tool_call["tool_name"] == "perplexity_search":
-            additional_info = tool_call["arguments"].get('additional_info', '')
-            return perplexity_search(tool_call["arguments"]['query'], additional_info)
+            return perplexity_search(tool_call["arguments"]['query'])
     
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("Apple")       
+    master_agent.run("Microsoft")       

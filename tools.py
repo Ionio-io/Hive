@@ -3,37 +3,17 @@ import yfinance as yf
 from clients import openai_client
 from dotenv import load_dotenv
 from openai import OpenAI
-import json
-import time
+import os
+from PROMPTS import FINANCIAL_DATA_ANALYSIS_PROMPT, system_message_tools
 
 load_dotenv()
 client = OpenAI()
 
-def perplexity_search(query: str, additional_info: str) -> str:
-    system_message = """
-    You are a helpful assistant that can answer questions.
-    You are an expert at searching the internet for information.
-    You have to search for what the user tells you in detail.
-    
-    Format your responses in a way that is easy to understand.
-    
-    Your responses are to be detailed, go very wide, and gather as much information as possible.
-    If you think there are interesting things the user can learn more about, you can mention them.
-    
-    Please keep in mind you have to research in depth. And in-width, search for as much information as possible.
-    Search for connections between different things.
-    Search for the latest information.
-    
-    Your responses are to be detailed, go very wide, and gather as much information as possible.
-    Extensive responses are encouraged.
-    """
-    
+def perplexity_search(query: str) -> str:
     messages = [
-        {"role": "system", "content": system_message},
+        {"role": "system", "content": system_message_tools},
         {"role": "user", "content": query},
     ]
-    if additional_info:
-        messages.append({"role": "assistant", "content": additional_info})
     
     response = ppxl_client.chat.completions.create(
         model="llama-3.1-sonar-large-128k-online",
@@ -44,26 +24,20 @@ def perplexity_search(query: str, additional_info: str) -> str:
     response_text = response.choices[0].message.content
     return response_text
 
-def get_finance_data(ticker: str, period: str, filename: str):
-    ticker = yf.Ticker(ticker)
-    news = ticker.news
-    with open('news_data.json', 'w') as json_file:
-        json.dump(news, json_file, indent=4)
-    
+def get_ticker_data(ticker: str, period: str, filename: str):
+    ticker_obj = yf.Ticker(ticker)
     try:
-        hist = ticker.history(period=period)
-        hist.to_csv(filename) 
+        hist = ticker_obj.history(period=period)
+        subdirectory = f"Tickerdata/{ticker}" ### creating a folder, sub folder with the name of the ticker _< storing its stock trends
+        os.makedirs(subdirectory, exist_ok=True)
+        filepath = os.path.join(subdirectory, filename)
+        hist.to_csv(filepath)
+        return filepath  
     except Exception as e:
         print(f"Error fetching data: {e}")
         return None
-    
-    return hist
 
-def load_news_from_file(filename='news_data.json') -> str:
-    with open(filename, 'r') as json_file:
-        news_data = json.load(json_file)
-    return json.dumps(news_data, indent=4)
-def analyse_finance_data(filename: str, news_data: str):
+def analyse_finance_data(filename: str):
     file = client.files.create(
         file=open(filename, "rb"),
         purpose='assistants'
@@ -76,8 +50,7 @@ def analyse_finance_data(filename: str, news_data: str):
         You should focus on key financial metrics such as revenue,
         expenses, profit, and cash flow. Additionally,
         you should identify any trends or patterns 
-        in the data and provide insights, especially considering 
-        the related news provided.''', 
+        in the data and provide insights''', 
         model="gpt-4o",
         tools=[{"type": "code_interpreter"}],
         tool_resources={
@@ -91,7 +64,7 @@ def analyse_finance_data(filename: str, news_data: str):
         messages=[
             {
                 "role": "user",
-                "content": f"Analyze the financial data provided in the CSV file and provide insights and explanations, considering the following news data: {news_data}. Create and show visualisations",  
+                "content": FINANCIAL_DATA_ANALYSIS_PROMPT,
                 "attachments": [
                     {
                         "file_id": file.id,
@@ -120,4 +93,3 @@ def analyse_finance_data(filename: str, news_data: str):
 
     else:
         print(run.status)
-
