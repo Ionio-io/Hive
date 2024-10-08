@@ -2,7 +2,7 @@ from clients import ppxl_client
 import yfinance as yf
 from dotenv import load_dotenv
 import os
-from PROMPTS import FINANCIAL_DATA_ANALYSIS_PROMPT, system_message_tools
+from PROMPTS import FINANCIAL_DATA_ANALYSIS_PROMPT, PERPLEXITY_MESSAGE_TOOL
 from openai import OpenAI
 
 # Initialize OpenAI client and load environment variables
@@ -11,7 +11,7 @@ load_dotenv()
 
 def perplexity_search(query: str) -> str:
     messages = [
-        {"role": "system", "content": system_message_tools},
+        {"role": "system", "content": PERPLEXITY_MESSAGE_TOOL},
         {"role": "user", "content": query},
     ]
     
@@ -36,15 +36,4 @@ def get_ticker_data(ticker: str, period: str, filename: str) -> str:
     except Exception as e:
         print(f"Error fetching data: {e}")
         return None
-    
-
-    
-# if __name__ == "__main__":
-
-#     ticker = "TSLA" 
-#     period = "1y"    
-#     filename = "TSLA_data.csv"
-
-#     file_path = get_ticker_data(ticker, period, filename)
-#     analyse_finance_data(file_path)
     

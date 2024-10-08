@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from clients import openai_client
 from utils import call_openai
 from openai import OpenAI
-from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, report_prompt, FINANCIAL_DATA_ANALYSIS_PROMPT
+from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FINANCIAL_DATA_ANALYSIS_PROMPT
 from tools import get_ticker_data, perplexity_search
 
 load_dotenv()
@@ -95,33 +95,32 @@ class AnalystAgent:
                 return "Failed to retrieve financial data."
             
             print(f"[{self.name}] Data retrieved successfully. Stored at: {self.ticker_data_file}")
-            return self.analyse_finance_data(self.ticker_data_file)
+            filename = self.ticker_data_file
+            if not filename:
+                return "No data file available for analysis."
+
+            print(f"[{self.name}] Analyzing finance data from {filename}...")
+            file = client.files.create(file=open(filename, "rb"), purpose='assistants')
+            assistant = client.beta.assistants.create(
+                name='Financial analyst',
+                description="Analyze the financial data.",
+                model=self.model,
+                tools=[{"type": "code_interpreter"}],
+                tool_resources={"code_interpreter": {"file_ids": [file.id]}}
+            )
+            thread = client.beta.threads.create(messages=[{"role": "user", "content": FINANCIAL_DATA_ANALYSIS_PROMPT}])
+            run = client.beta.threads.runs.create_and_poll(thread_id=thread.id, assistant_id=assistant.id)
+            if run.status == 'completed':
+                for message in client.beta.threads.messages.list(thread_id=thread.id).data:
+                    if message.role == 'assistant':
+                        return message.content[0].text.value if message.content[0].type == 'text' else ""
+            else:
+                print(f"[{self.name}] Analysis error: {run.status}")
+                return f"Error: {run.status}"
         except Exception as e:
             print(f"[{self.name}] Unexpected error analyzing financial data: {e}")
             return f"An unexpected error occurred during financial analysis: {str(e)}"
-
-    def analyse_finance_data(self, filename):
-        if not filename:
-            return "No data file available for analysis."
-
-        print(f"[{self.name}] Analyzing finance data from {filename}...")
-        file = client.files.create(file=open(filename, "rb"), purpose='assistants')
-        assistant = client.beta.assistants.create(
-            name='Financial analyst',
-            description="Analyze the financial data.",
-            model=self.model,
-            tools=[{"type": "code_interpreter"}],
-            tool_resources={"code_interpreter": {"file_ids": [file.id]}}
-        )
-        thread = client.beta.threads.create(messages=[{"role": "user", "content": FINANCIAL_DATA_ANALYSIS_PROMPT}])
-        run = client.beta.threads.runs.create_and_poll(thread_id=thread.id, assistant_id=assistant.id)
-        if run.status == 'completed':
-            for message in client.beta.threads.messages.list(thread_id=thread.id).data:
-                if message.role == 'assistant':
-                    return message.content[0].text.value if message.content[0].type == 'text' else ""
-        else:
-            print(f"[{self.name}] Analysis error: {run.status}")
-            return f"Error: {run.status}"
+        
 class WorkerAgent:
     def __init__(self, name, task):
         self.name = name
@@ -149,7 +148,7 @@ class WorkerAgent:
 
     def generate_report(self, messages):
         report_message = call_openai(
-            messages + [{"role": "user", "content": report_prompt}],
+            messages + [{"role": "user", "content": REPORT_PROMPT}],
             client=openai_client,
             model=self.model,
             temperature=0.3
