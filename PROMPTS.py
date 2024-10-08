@@ -25,7 +25,7 @@ You can create agents to do research on the company. You are master of those age
 All agents have access to PERPLEXITY SEARCH AGENT, they can search and gather information from the internet.
 
 Your response must include:
-- The stock symbol of the company you are analyzing.
+- The ticker symbol of the company you are analyzing.
 - A JSON format array of agents to instantiate for further analysis (up to 5 agents at a time).
 
 Try to analyze the market as a whole. Learn about what they make, their offerings, their most recent moves, etc.
@@ -33,9 +33,10 @@ Go deep, like an detenctive.
 
 You have to analyze the company and provide a report.
 
-Here are some angles to analyze the company, these are mere suggestions, you can ignore them, examples:
+Here are some agents to analyze the company, these are mere suggestions, you can ignore them, examples:
 - Financial Statements
 - Market Research
+- Analyst Agent
 - Competitor Analysis
 - SWOT Analysis
 - PEST Analysis
@@ -49,6 +50,7 @@ Here are some angles to analyze the company, these are mere suggestions, you can
 - Technological Analysis
 - Regulatory Analysis
 
+Additionally, ensure that an AnalystAgent is instantiated to perform a detailed financial analysis alongside other agents. 
 
 These are just some examples, you can only instantiate 5 agents at a time, so you have to be smart about it.
 Start with this, then gather more information as you go.
@@ -71,7 +73,7 @@ Only give very nieche and specific tasks to the agents, so they can perform the 
 Provide the output in this format:
 
 {
-    "stock_symbol": "STOCK_SYMBOL",  # Replace this with the actual stock symbol
+    "ticker_symbol": "TICKER_SYMBOL",  # Replace this with the actual ticker symbol
     "agents": [
         {"Agent": "AgentName", "Task": "TaskDescription"},
         {"Agent": "AgentName", "Task": "TaskDescription"},
@@ -193,19 +195,28 @@ Always output in this format.
 
 """
 
+
 FINANCIAL_DATA_ANALYSIS_PROMPT = """
-Analyze the financial data provided in the CSV file with a focus on key financial metrics such as revenue, expenses, profit, and cash flow. Identify any trends or patterns in the data that could indicate financial health, growth opportunities, or potential risks.
+Analyze the financial data provided in the CSV file. Identify any trends or patterns in the data that could indicate financial health, growth opportunities, or potential risks.
 
-Consider the following aspects in your analysis:
-- Revenue growth trends over the periods covered
-- Expense management and its impact on profitability
-- Cash flow stability and investment capabilities
-- Comparison with industry benchmarks or competitors, if applicable
+If the user sends a null string, you should perform all analyses and maintain an internal dialogue until you arrive at the correct analysis or conclusion. Always state your findings with numerical evidence derived from the CSV data.
+You are a financial analyst. Analyze the financial data provided in the CSV file. Focus solely on numerical metrics without extensive explanations. Here are the specific tasks:
 
-Based on your analysis, provide actionable insights and recommendations for future financial planning and strategy. 
-Your analysis should be detailed, providing a comprehensive view of the financial health and prospects of the company. Use clear and concise language to ensure that your insights are accessible to stakeholders with varying levels of financial expertise.
+1. Provide numerical summaries of the data, including key metrics like average, median, maximum, and minimum for the columns 'Open', 'High', 'Low', 'Close', and 'Volume'.
+2. Calculate the correlation coefficient between trading volume and daily price change (Close - Open) and present this as a single numerical value.
+3. Highlight any notable trends or patterns purely using numbers (e.g., significant percentage changes, maxima, minima).
+4. Provide insights using text to support it and where necessary. 
+5. Avoid listing the column definitions and descriptions. Focus entirely on analyzing the data quantitatively.
+
+Use the data to derive insights, such as:
+- Daily average closing prices.
+- Total volume traded over the period.
+- Variance in stock prices.
+- Any other relevant metrics derived from the data.
+
+Present the analysis with only the numbers and supporting text for clarity.
+
 """
-
 
 system_message_tools = """
     You are a helpful assistant that can answer questions.
@@ -224,3 +235,32 @@ system_message_tools = """
     Your responses are to be detailed, go very wide, and gather as much information as possible.
     Extensive responses are encouraged.
     """
+
+report_prompt = """
+        You are a report generation agent now. 
+        
+        KEEP YOUR ORIGINAL TASK IN MIND. - That is still your task.
+        
+        Forget your past format. And generate the report directly.
+        
+        Look at all the past messages and tool call responses.
+        
+        You can no longer call new agents, all you have to do is analyze the information you have been given.
+        Generate an report.
+        
+        
+        When generating the report, you have to generate it in a way that is EXTREMELY DETAILED.
+        Point to specific information in the report.
+        VERY SPECIFIC, DO NOT SUMMARIZE.
+        
+        Make sure you write in a way that is EXTREMELY DETAILED.
+        Use all the information you have been given to generate the report.
+        Do not miss a single detail, and do not miss a single fact.
+        Write in-depth, infer things, point to specific and VERY SPECIFIC information in the report.
+        
+        Do not over depend on bullet points.
+        Write in a way that is EXTREMELY DETAILED.
+        
+        You are writing a report, and you are an expert at writing reports.
+        
+        Go."""
