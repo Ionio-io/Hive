@@ -198,7 +198,7 @@ Always output in this format.
 
 FINANCIAL_DATA_ANALYSIS_PROMPT =""" Analyze the financial data provided in the CSV 
 file with a focus on identifying and explaining 
-current trends and predicting future stock movements. 
+current trends and predicting future stock movements. Create visualisations for a better understanding for trends.
 This analysis should be deeply quantitative, relying on numerical 
 evidence for all conclusions. The ultimate goal is to offer insights 
 into potential future trends based on current and historical data patterns, alongside 
@@ -214,8 +214,8 @@ Remember to do this accuractely, and stick with this tone only.
 Incase the user sends in a null string, you should keep talking to yourself and reason more this
 until you reach an appriopiate result. You should be coming up with conclusions as a financial expert does.
 ts.
-create visualizations of this data to support your insights.
- For each graph, provide a proper description and title in XML format, 
+REMEMBER TO create visualizations of this data to support your insights. (Neccesary to create valid releavant visualisations, you cant avoid this step.)
+For each graph, provide a proper description and title in XML format, 
  highlighting key observations from the data. Explain what these 
  visualizations reveal about the current trends, focusing on 
  observable patterns in stock price and trading volume.
@@ -224,7 +224,7 @@ Should be of the following format :
 <description> explain the visualisation and the trends that it shows. Also make future trends
 and comment about that from the visuals. </description>
 </visualisation>
-Remember to map these visualisations with their respective description so we know what is passed to what
+Remember to map these visualisations with their respective description so we know what is passed to what(absolutely neccesary to describe the generated visualisation in this format.)
 From the findings and deep in depth analysis, make hypothesis and theories, make sure these are valid
 and relevant to your findings and the stock information. Go one step further by writing valid code to 
 prove these findings and hypothesis. Make sure everything is correct do internal checks. Give proper

@@ -21,39 +21,37 @@ class MasterAgent:
         messages = [{"role": "user", "content": prompt}]
         response_message = call_openai(messages, client=openai_client, model=self.model)
         self.log("MasterAgent initial response received.")
+        
         match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
-        if match:
-            raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
-            try:
-                stock_info = json.loads(raw_output)
-                ticker_symbol = stock_info.get("ticker_symbol")
-                print(f"Stock Symbol: {ticker_symbol}")
-                worker_responses = []
-                for agent_info in stock_info.get("agents", []):
-                    agent_name = agent_info.get("Agent")
-                    task_description = agent_info.get("Task")
-                    print(f"Instantiating {agent_name} for task: {task_description}")
-                    agent_instance = self.instantiate_worker(agent_name, task_description)
-                    worker_response = agent_instance.run()
+        raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
+        try:
+            stock_info = json.loads(raw_output)
+            ticker_symbol = stock_info.get("ticker_symbol")
+            print(f"Stock Symbol: {ticker_symbol}")
+            worker_responses = []
+            
+            for agent_info in stock_info.get("agents", []):
+                agent_instance = self.instantiate_worker(agent_info.get("Agent"), agent_info.get("Task"))
+                worker_response = agent_instance.run()
+                worker_responses.append({
+                    "agent": agent_instance.name,
+                    "task": agent_info.get("Task"),
+                    "response": worker_response
+                })
+                
+                if agent_instance.name == "AnalystAgent":
+                    analyst_response = AnalystAgent(user_prompt).run(ticker_symbol)
                     worker_responses.append({
-                        "agent": agent_instance.name,
-                        "task": task_description,
-                        "response": worker_response
+                        "agent": "AnalystAgent",
+                        "task": "Financial Analysis",
+                        "response": analyst_response
                     })
-                    if agent_name == "AnalystAgent":
-                        analyst_agent = AnalystAgent(user_prompt)
-                        analyst_response = analyst_agent.run(ticker_symbol)
-                        worker_responses.append({
-                            "agent": analyst_agent.name,
-                            "task": "Financial Analysis",
-                            "response": analyst_response
-                        })
-                    self.generate_report(worker_responses, messages)
-            except json.JSONDecodeError as e:
-                print("Failed to parse JSON for agent instantiations.")
-                print(f"Error: {str(e)}")  
-        else:
-            print("No agent instantiations found in the response.")
+            
+            self.generate_report(worker_responses, messages)
+    
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON for agent instantiations. Error: {str(e)}")
+
     
     def log(self, message):
         print(f"[MasterAgent]: {message}")
@@ -101,22 +99,55 @@ class AnalystAgent:
 
             print(f"[{self.name}] Analyzing finance data from {filename}...")
             file = client.files.create(file=open(filename, "rb"), purpose='assistants')
+
             assistant = client.beta.assistants.create(
-                name='Financial analyst',
-                description="Analyze the financial data.",
-                model=self.model,
-                tools=[{"type": "code_interpreter"}],
-                tool_resources={"code_interpreter": {"file_ids": [file.id]}}
-            )
-            thread = client.beta.threads.create(messages=[{"role": "user", "content": FINANCIAL_DATA_ANALYSIS_PROMPT}])
-            run = client.beta.threads.runs.create_and_poll(thread_id=thread.id, assistant_id=assistant.id)
-            if run.status == 'completed':
+            name="Data visualizer",
+            description="You analyze data present in .csv files, understand trends, and come up with data visualizations relevant to those trends. You also share a brief text summary of the trends observed, while also creating hypotheses about future trends and showing the metrics via visualizations.",
+            model="gpt-4o", 
+            tools=[{"type": "code_interpreter"}],
+            tool_resources={
+                "code_interpreter": {
+                    "file_ids": [file.id]
+                }
+            }
+        )
+            thread = client.beta.threads.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": FINANCIAL_DATA_ANALYSIS_PROMPT,  
+                    "attachments": [
+                        {
+                            "file_id": file.id,
+                            "tools": [{"type": "code_interpreter"}]
+                        }]}])
+            
+            run = client.beta.threads.runs.create_and_poll(
+                    thread_id=thread.id,
+                    assistant_id=assistant.id,
+                    model="gpt-4o",
+                    tools=[{"type": "code_interpreter"}, {"type": "file_search"}]
+                )
+            
+            if run.status == 'completed': 
+                messages = client.beta.threads.messages.list(
+                    thread_id=thread.id
+                )
+
+                r = messages.data[0]
+                api_response = client.files.content(r.content[0].image_file.file_id)
+
+                if api_response:
+                    content = api_response.content
+                    with open('image.png', 'wb') as f:
+                        f.write(content)
+                    print('Visualisations have been downloaded successfully. Kindly refer to the same.')
                 for message in client.beta.threads.messages.list(thread_id=thread.id).data:
-                    if message.role == 'assistant':
-                        return message.content[0].text.value if message.content[0].type == 'text' else ""
-            else:
-                print(f"[{self.name}] Analysis error: {run.status}")
-                return f"Error: {run.status}"
+                                if message.role == 'assistant':
+                                    if message.content[0].type == 'text':
+                                        print(message.content[0].text.value)
+                else:
+                    print(run.status)
         except Exception as e:
             print(f"[{self.name}] Unexpected error analyzing financial data: {e}")
             return f"An unexpected error occurred during financial analysis: {str(e)}"
@@ -165,4 +196,4 @@ class WorkerAgent:
 
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("IBM")
+    master_agent.run("Intel")
