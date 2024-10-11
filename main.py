@@ -207,10 +207,10 @@ class WorkerAgent:
 def replace_image_tokens(report_file_path):
     with open(report_file_path, 'r') as file:
         report_content = file.read()
-
     report_content = report_content.replace(
-        '<IMAGE="', '![image]('
+        '<IMAGE="', '![image](image.png'
     ).replace('"/>', ')\n')
+
     with open(report_file_path, 'w') as file:
         file.write(report_content)
 
