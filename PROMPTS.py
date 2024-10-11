@@ -91,6 +91,8 @@ You must always follow the format.
 Company to analyze: __COMPANY_NAME__
 Extra info task: __INFO__
 
+IMPORTANT: Ensure the output strictly adheres to JSON formatting within the <OUTPUT> tags. Avoid extra spaces and ensure all elements are properly enclosed.
+
 
 MUST THINK DEEPLY BEFORE STARTING.
 EXTREME DEPTH IN THINKING.

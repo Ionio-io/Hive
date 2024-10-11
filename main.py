@@ -21,9 +21,12 @@ class MasterAgent:
         messages = [{"role": "user", "content": prompt}]
         response_message = call_openai(messages, client=openai_client, model=self.model)
         self.log("MasterAgent initial response received.")
-        
+
         match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
         raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
+        if not raw_output:
+            print("Error: No data received in <OUTPUT>.")
+            return
         try:
             stock_info = json.loads(raw_output)
             ticker_symbol = stock_info.get("ticker_symbol")
@@ -127,7 +130,7 @@ class AnalystAgent:
                     assistant_id=assistant.id,
                     model="gpt-4o",
                     tools=[{"type": "code_interpreter"}, {"type": "file_search"}]
-                )
+                        )
             
             if run.status == 'completed': 
                 messages = client.beta.threads.messages.list(
@@ -142,16 +145,24 @@ class AnalystAgent:
                     with open('image.png', 'wb') as f:
                         f.write(content)
                     print('Visualisations have been downloaded successfully. Kindly refer to the same.')
-                for message in client.beta.threads.messages.list(thread_id=thread.id).data:
-                                if message.role == 'assistant':
-                                    if message.content[0].type == 'text':
-                                        print(message.content[0].text.value)
-                else:
-                    print(run.status)
+                
+                results = []
+                for message in messages.data:
+                    if message.role == 'assistant':
+                        if message.content[0].type == 'text':
+                            print(message.content[0].text.value)
+                            results.append(message.content[0].text.value)
+                
+                return "\n".join(results)  
+
+            else:
+                print(run.status)
+                return "Analysis did not complete successfully."
+
         except Exception as e:
             print(f"[{self.name}] Unexpected error analyzing financial data: {e}")
             return f"An unexpected error occurred during financial analysis: {str(e)}"
-        
+
 class WorkerAgent:
     def __init__(self, name, task):
         self.name = name
@@ -196,4 +207,4 @@ class WorkerAgent:
 
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("Intel")
+    master_agent.run("Meta")
