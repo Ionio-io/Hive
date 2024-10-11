@@ -14,7 +14,7 @@ client = OpenAI()
 class MasterAgent:
     def __init__(self):
         self.name = "MasterAgent"
-        self.model = "o1-mini"
+        self.model = "gpt-4o"
 
     def run(self, user_prompt):
         prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
@@ -131,26 +131,31 @@ class AnalystAgent:
                     model="gpt-4o",
                     tools=[{"type": "code_interpreter"}, {"type": "file_search"}]
                         )
-            
             if run.status == 'completed': 
-                messages = client.beta.threads.messages.list(
-                    thread_id=thread.id
-                )
-                r = messages.data[0]
-                api_response = client.files.content(r.content[0].image_file.file_id)
+                messages = client.beta.threads.messages.list(thread_id=thread.id)
+                image_counter = 1
+                for message in messages.data:
+                    if message.role == 'assistant':
+                        for content_item in message.content:
+                            if hasattr(content_item, 'image_file'):
+                                image_file_id = content_item.image_file.file_id
+                                api_response = client.files.content(image_file_id)
 
-                if api_response:
-                    content = api_response.content
-                    with open('image.png', 'wb') as f:
-                        f.write(content)
-                    print('Visualisations have been downloaded successfully. Kindly refer to the same.')
-                
+                                if api_response:
+                                    image_filename = f'image_{image_counter}.png'
+                                    with open(image_filename, 'wb') as f:
+                                        f.write(api_response.content)
+                                    print(f'Visualization {image_counter} has been downloaded successfully: {image_filename}')
+                                    image_counter += 1
+                            if hasattr(content_item, 'text'):
+                                print(content_item.text.value)
+
                 results = []
                 for message in messages.data:
                     if message.role == 'assistant':
-                        if message.content[0].type == 'text':
-                            print(message.content[0].text.value)
-                            results.append(message.content[0].text.value)
+                        for content_item in message.content:
+                            if hasattr(content_item, 'text'):
+                                results.append(content_item.text.value)
                 
                 return "\n".join(results)  
 
@@ -161,7 +166,7 @@ class AnalystAgent:
         except Exception as e:
             print(f"[{self.name}] Unexpected error analyzing financial data: {e}")
             return f"An unexpected error occurred during financial analysis: {str(e)}"
-
+            
 class WorkerAgent:
     def __init__(self, name, task):
         self.name = name
@@ -217,6 +222,5 @@ def replace_image_tokens(report_file_path):
 
 
 if __name__ == "__main__":
-    # master_agent = MasterAgent()
-    # master_agent.run("Meta")
-    replace_image_tokens("report.md")
+    master_agent = MasterAgent()
+    master_agent.run("Meta")
