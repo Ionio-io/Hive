@@ -14,7 +14,7 @@ client = OpenAI()
 class MasterAgent:
     def __init__(self):
         self.name = "MasterAgent"
-        self.model = "o1-mini"
+        self.model = "gpt-4o"
 
     def run(self, user_prompt):
         prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
@@ -136,7 +136,6 @@ class AnalystAgent:
                 messages = client.beta.threads.messages.list(
                     thread_id=thread.id
                 )
-
                 r = messages.data[0]
                 api_response = client.files.content(r.content[0].image_file.file_id)
 
@@ -205,6 +204,18 @@ class WorkerAgent:
             return perplexity_search(tool_call["arguments"]['query'])
 
 
+def replace_image_tokens(report_file_path):
+    with open(report_file_path, 'r') as file:
+        report_content = file.read()
+
+    report_content = report_content.replace(
+        '<IMAGE="', '![image]('
+    ).replace('"/>', ')\n')
+    with open(report_file_path, 'w') as file:
+        file.write(report_content)
+
+
 if __name__ == "__main__":
     master_agent = MasterAgent()
     master_agent.run("Meta")
+    replace_image_tokens("report.md")

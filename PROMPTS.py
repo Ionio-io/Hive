@@ -51,6 +51,8 @@ Here are some agents to analyze the company, these are mere suggestions, you can
 - Regulatory Analysis
 
 Additionally, ensure that an AnalystAgent is instantiated to perform a detailed financial analysis alongside other agents. 
+Your analysis should also prepare for future reporting by indicating where images will be included. Use <IMAGE="image.png"/> tokens to signify where images should be added in the report, along with descriptions of these images.
+
 
 These are just some examples, you can only instantiate 5 agents at a time, so you have to be smart about it.
 Start with this, then gather more information as you go.
@@ -184,7 +186,7 @@ YOU ARE ENCOURAGED TO ASK MORE FOLLOW UP QUESTIONS ONCE YOU GET A REPONSE.
 PULL THE THREADS AND RESEARCH IN DEPTH.
 
 
-Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.
+Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.Make use of the generated visualisations from the AnalystAgent. Use <IMAGE=\"name.png\"/> tokens to indicate where images should be included in the report. Remember Provide a description and name for each visualization generated. Focus on specificity and depth without summarizing or using bullet points.
 
 Dig deeper, always.
 
@@ -218,14 +220,17 @@ until you reach an appriopiate result. You should be coming up with conclusions 
 ts.
 REMEMBER TO create visualizations of this data to support your insights. (Neccesary to create valid releavant visualisations, you cant avoid this step.)
 For each graph, provide a proper description and title in XML format, 
- highlighting key observations from the data. Explain what these 
- visualizations reveal about the current trends, focusing on 
- observable patterns in stock price and trading volume.
+highlighting key observations from the data.Include <IMAGE="name.png"/> tokens to indicate where images should be included in the report along with their descriptions.
+Explain what these 
+visualizations reveal about the current trends, focusing on 
+observable patterns in stock price and trading volume.
+
 Should be of the following format :
 <visualisation>Name of the visualisation
 <description> explain the visualisation and the trends that it shows. Also make future trends
 and comment about that from the visuals. </description>
 </visualisation>
+
 Remember to map these visualisations with their respective description so we know what is passed to what(absolutely neccesary to describe the generated visualisation in this format.)
 From the findings and deep in depth analysis, make hypothesis and theories, make sure these are valid
 and relevant to your findings and the stock information. Go one step further by writing valid code to 
@@ -266,6 +271,9 @@ REPORT_PROMPT = """
         You can no longer call new agents, all you have to do is analyze the information you have been given.
         Generate an report.
         
+        Include <IMAGE="name.png"/> tokens to indicate where images should be placed in the report. This is neccesary.
+        Each image token must have a corresponding description. Provide a description for each visualization generated.
+        Focus on specificity and depth without summarizing or using bullet points. 
         
         When generating the report, you have to generate it in a way that is EXTREMELY DETAILED.
         Point to specific information in the report.
