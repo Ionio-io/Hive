@@ -210,17 +210,16 @@ class WorkerAgent:
 
 
 def replace_image_tokens(report_file_path):
-    with open(report_file_path, 'r') as file:
-        report_content = file.read()
-    report_content = report_content.replace('<IMAGE="', '![image](image.png').replace('"/>', ')\n')
-  
-    report_content = re.sub(r'(\!\[image\]\(image\.png)(\w+\.png\))', r'\1)', report_content)
-
-    with open(report_file_path, 'w') as file:
-        file.write(report_content)
+    with open('report.md', 'r') as file:
+        content = file.read()
+    pattern = r'<IMAGE="([^"]+)"/>'
+    new_content = re.sub(pattern, r'![alt text](\1)', content)
+    with open('report.md', 'w') as file:
+        file.write(new_content)
 
 
 
 if __name__ == "__main__":
     master_agent = MasterAgent()
     master_agent.run("Meta")
+    replace_image_tokens("report.md")
