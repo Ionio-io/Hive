@@ -220,6 +220,6 @@ def replace_image_tokens(report_file_path):
 
 
 if __name__ == "__main__":
-    # master_agent = MasterAgent()
-    # master_agent.run("Goldman Sachs")
+    master_agent = MasterAgent()
+    master_agent.run("Goldman Sachs")
     replace_image_tokens("report.md")
