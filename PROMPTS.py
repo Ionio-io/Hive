@@ -63,7 +63,7 @@ Start with this, then gather more information as you go.
 
 
 When you get information, you have to analyze it, and you can then move ahead and create more agents, you don't have to do it all at once.
-
+Important and must to output the information as JSON only, wrapped inside <OUTPUT> and </OUTPUT> tags.
 Output format:
 <THOUGHTS>
 
@@ -98,7 +98,7 @@ Company to analyze: __COMPANY_NAME__
 Extra info task: __INFO__
 
 IMPORTANT: Ensure the output strictly adheres to JSON formatting within the <OUTPUT> tags. Avoid extra spaces and ensure all elements are properly enclosed.
-
+Ensure the JSON format is strictly adhered to. Invalid JSON will result in parsing errors and disrupt the analysis. It is important and absolutely necessary.
 
 MUST THINK DEEPLY BEFORE STARTING.
 EXTREME DEPTH IN THINKING.
@@ -213,7 +213,7 @@ into potential future trends based on current and historical data patterns, alon
 a robust analysis of the stock’s performance and risk factors.
 Avoid explaining about the columns given in the dataset(you dont have to talk anything about the 
 given columns of the dataset. you will use the data from these columns for carefully making 
-insights.). You will use the data from these columns only for generating
+insights. You will use the data from these columns only for generating
 insights and calculting metrics or for analysing current and future trends. As an expert, Make use of the data as much as possible
 as that would help in analysing about the stock in a careful and expert way.
 Use numbers from the file to backup your findings. Also perform calulations on 
@@ -223,7 +223,7 @@ Incase the user sends in a null string, you should keep talking to yourself and 
 until you reach an appriopiate result. You should be coming up with conclusions as a financial expert does.
 ts.
 REMEMBER TO create visualizations of this data to support your insights. Always have relevant visualisations generated.
-(Neccesary to create valid releavant visualisations, you cant avoid this step. atleast 2 images)
+(Neccesary to create valid releavant visualisations, you cant avoid this step. atleast 2 images and can be more as well)
 For each graph, provide a proper description and title in XML format, 
 highlighting key observations from the data.Include <IMAGE="image_along_its_corresponding_number.png"/> tokens to indicate where images should be included in the report along with their descriptions.
 Explain what these 

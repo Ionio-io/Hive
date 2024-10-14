@@ -14,7 +14,7 @@ client = OpenAI()
 class MasterAgent:
     def __init__(self):
         self.name = "MasterAgent"
-        self.model = "gpt-4o"
+        self.model = "o1-mini"
 
     def run(self, user_prompt):
         prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
@@ -23,10 +23,11 @@ class MasterAgent:
         self.log("MasterAgent initial response received.")
 
         match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
-        raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
-        if not raw_output:
-            print("Error: No data received in <OUTPUT>.")
-            return
+        if match:
+            raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
+            if not raw_output:
+                print("Error: No data received in <OUTPUT>.")
+                return
         try:
             stock_info = json.loads(raw_output)
             ticker_symbol = stock_info.get("ticker_symbol")
@@ -55,7 +56,6 @@ class MasterAgent:
         except json.JSONDecodeError as e:
             print(f"Failed to parse JSON for agent instantiations. Error: {str(e)}")
 
-    
     def log(self, message):
         print(f"[MasterAgent]: {message}")
 
@@ -220,6 +220,6 @@ def replace_image_tokens(report_file_path):
 
 
 if __name__ == "__main__":
-    master_agent = MasterAgent()
-    master_agent.run("Meta")
+    # master_agent = MasterAgent()
+    # master_agent.run("Goldman Sachs")
     replace_image_tokens("report.md")
