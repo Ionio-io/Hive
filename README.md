@@ -2,6 +2,8 @@
 
 Hive is a powerful, multi-agent framework developed in Python, designed to facilitate complex workflows and automate data-driven tasks. While its architecture can be applied across various fields, this repository includes a comprehensive **Financial Data Analysis Tool** as a primary use case, demonstrating Hive's capabilities in a real-world scenario.
 
+For more detailed insights and information about this project, check out my blog post on the same topic: [Read the Blog](https://www.ionio.ai/blog/building-an-agentic-framework-with-o1-and-gpt-4o)
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Architecture Overview](#architecture-overview)
@@ -22,8 +24,6 @@ Hive streamlines the process of managing data-intensive tasks through a modular 
 To understand this agentic framework, let’s break down its architecture. Below is an architecture diagram that illustrates the interactions between the MasterAgent and Worker Agents:
 
 ![Architecture Diagram](arch.png)
-
-For more detailed insights and information about this project, check out my blog post on the same topic: [Read the Blog](https://www.ionio.ai/blog/building-an-agentic-framework-with-o1-and-gpt-4o)
 
 ### The MasterAgent
 
