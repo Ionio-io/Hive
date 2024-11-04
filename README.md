@@ -23,7 +23,7 @@ To understand this agentic framework, let’s break down its architecture. Below
 
 ![Architecture Diagram](arch.png)
 
-For more detailed insights and information about this project, check out my blog post on the same topic: [Read the Blog]([https://link-to-your-blog.com](https://www.ionio.ai/blog/building-an-agentic-framework-with-o1-and-gpt-4o)) 
+For more detailed insights and information about this project, check out my blog post on the same topic: [Read the Blog](https://www.ionio.ai/blog/building-an-agentic-framework-with-o1-and-gpt-4o)
 
 ### The MasterAgent
 
