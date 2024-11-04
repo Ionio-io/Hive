@@ -75,8 +75,8 @@ if __name__ == "__main__":
 ## Setting Up the Project
 ### 1. Clone the repository:
 ```bash
-git clone https://github.com/Ionio-io/O1-Agents
-cd O1-Agents
+git clone https://github.com/Ionio-io/Hive.git
+cd Hive
 ```
 
 ### 2. Install required packages:
