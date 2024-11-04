@@ -21,7 +21,7 @@ Hive streamlines the process of managing data-intensive tasks through a modular 
 
 To understand this agentic framework, let’s break down its architecture. Below is an architecture diagram that illustrates the interactions between the MasterAgent and Worker Agents:
 
-![Architecture Diagram](<img width="761" alt="image" src="https://github.com/user-attachments/assets/c7733080-8ba0-4fed-99d0-092ca050b63c">) 
+![Architecture Diagram](arch.png)
 
 For more detailed insights and information about this project, check out my blog post on the same topic: [Read the Blog]([https://link-to-your-blog.com](https://www.ionio.ai/blog/building-an-agentic-framework-with-o1-and-gpt-4o)) 
 
