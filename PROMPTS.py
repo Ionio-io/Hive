@@ -76,7 +76,7 @@ Like what you plan to do, how do you plan to use the agents, what are you thinki
 ONLY OUTPUT AN ARRAY OF AGENTS YOU WANT TO INSTANTIATE. Task is the task you want the agent to perform. - Write 2 sentences of description of the task.
 Only give very nieche and specific tasks to the agents, so they can perform the task very well.
 
-Provide the output in this format:
+Provide the output in this format, REMEMBER IT IS MUST TO STICK WITH THIS FORMAT ONLY AND NO OTHER DEVIATIONS. :
 
 {
     "ticker_symbol": "TICKER_SYMBOL",  # Replace this with the actual ticker symbol
@@ -112,7 +112,6 @@ Go.
 """
 
 WORKER_AGENT_PROMPT = f"""
-CURRENT DATE: 25/09/2024
 
 You are a helpful assistant.
 END THE CONVERSATION AFTER __MAX_MESSAGES__ MESSAGES.
