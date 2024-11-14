@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 import os
 from PROMPTS import FINANCIAL_DATA_ANALYSIS_PROMPT, PERPLEXITY_MESSAGE_TOOL
 from openai import OpenAI
-
-# Initialize OpenAI client and load environment variables
-client = OpenAI()
 load_dotenv()
+key = os.getenv("OPEN_AI_API_KEY")
+# Initialize OpenAI client and load environment variables
+client = OpenAI(api_key=key)
+
 
 def perplexity_search(query: str) -> str:
     messages = [

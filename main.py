@@ -1,5 +1,6 @@
 import json
 import re
+import os
 from rich import print
 from dotenv import load_dotenv
 from clients import openai_client
@@ -9,7 +10,8 @@ from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FIN
 from tools import get_ticker_data, perplexity_search
 
 load_dotenv()
-client = OpenAI()
+key = os.getenv("OPEN_AI_API_KEY")
+client = OpenAI(api_key=key)
 
 class MasterAgent:
     def __init__(self):
