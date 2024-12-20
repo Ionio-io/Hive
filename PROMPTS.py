@@ -76,8 +76,8 @@ Like what you plan to do, how do you plan to use the agents, what are you thinki
 ONLY OUTPUT AN ARRAY OF AGENTS YOU WANT TO INSTANTIATE. Task is the task you want the agent to perform. - Write 2 sentences of description of the task.
 Only give very nieche and specific tasks to the agents, so they can perform the task very well.
 
-Provide the output in this format, REMEMBER IT IS MUST TO STICK WITH THIS FORMAT ONLY AND NO OTHER DEVIATIONS. :
-
+Provide the output in this format, REMEMBER IT IS MUST TO STICK WITH THIS FORMAT ONLY AND NO OTHER DEVIATIONS :
+<OUTPUT>
 {
     "ticker_symbol": "TICKER_SYMBOL",  # Replace this with the actual ticker symbol
     "agents": [
@@ -88,10 +88,10 @@ Provide the output in this format, REMEMBER IT IS MUST TO STICK WITH THIS FORMAT
         {"Agent": "AgentName", "Task": "TaskDescription"}
     ]
 }
-
-
 </OUTPUT>
-You must always follow the format.
+
+You must always follow the format. Strictly adhere to the mentioned JSON format. Ensure eveyrthing is in the right format. You will be penalised if it is not in the right format. Make a final check
+to ensure the format and is right, and accordingly make changes if it is not.
 
 
 Company to analyze: __COMPANY_NAME__
@@ -183,6 +183,8 @@ __END_CONV__ - You must always use this to end the conversation.
 
 </OUTPUT>
 
+Strictly adhere to the mentioned JSON format. Ensure eveyrthing is in the right format. You will be penalised if it is not in the right format. Make a final check
+to ensure the format and is right, and accordingly make changes if it is not.
 Remember that if you see something in the reponse of the tool, a thread, that you feel is important, you can research it further and collect more information.
 YOU ARE ENCOURAGED TO RESEARCH THINGS IN DEPTH.
 YOU ARE ENCOURAGED TO ASK MORE FOLLOW UP QUESTIONS ONCE YOU GET A REPONSE.
@@ -192,13 +194,9 @@ PULL THE THREADS AND RESEARCH IN DEPTH.
 Later you will be asked to generate a report, and you will do that, when generating the report, you don't need to follow the format, you can just write the report.Make use of the generated visualisations from the AnalystAgent. Use <IMAGE=\"name.png\"/> tokens to indicate where images should be included in the report. Remember Provide a description and name for each visualization generated. Focus on specificity and depth without summarizing or using bullet points.
 
 Dig deeper, always.
-
 NO TEXT IN OUTPUT, either call the tool or end the conversation. Only one of the two.
-
 ALWAYS CLOSE BOTH THOUGHTS AND OUTPUT TAGS.
-
 Always output in this format.
-
 
 """
 
@@ -241,6 +239,7 @@ and relevant to your findings and the stock information. Go one step further by 
 prove these findings and hypothesis. Make sure everything is correct do internal checks. Give proper
 code in python to justify all these hypothesis. Your hypothesis must have numbers and must not
 only be text.
+It is very important for you to produce output in the mentioned correct format. You have to follow this else it will lead to penalty and negative points. Make a final check ensure it is in right format.
 Stick to this tone and every response from you should be backed up with some metrics or numeric term.
 """
 
