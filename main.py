@@ -1,6 +1,5 @@
 import json
 import re
-import os
 from rich import print
 from dotenv import load_dotenv
 from clients import openai_client
@@ -10,8 +9,7 @@ from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FIN
 from tools import get_ticker_data, perplexity_search
 
 load_dotenv()
-key = os.getenv("OPEN_AI_API_KEY")
-client = OpenAI(api_key=key)
+client = OpenAI()
 
 class MasterAgent:
     def __init__(self):
@@ -219,9 +217,7 @@ def replace_image_tokens(report_file_path):
     with open('report.md', 'w') as file:
         file.write(new_content)
 
-
-
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("Goldman Sachs")
+    master_agent.run("Berkshire Hathaway")
     replace_image_tokens("report.md")
