@@ -217,9 +217,7 @@ def replace_image_tokens(report_file_path):
     with open('report.md', 'w') as file:
         file.write(new_content)
 
-
-
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("Goldman Sachs")
+    master_agent.run("Berkshire Hathaway")
     replace_image_tokens("report.md")
