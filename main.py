@@ -1,6 +1,5 @@
 import json
 import re
-import os
 from rich import print
 from dotenv import load_dotenv
 from clients import openai_client
@@ -10,8 +9,7 @@ from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FIN
 from tools import get_ticker_data, perplexity_search
 
 load_dotenv()
-key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=key)
+client = OpenAI()
 
 class MasterAgent:
     def __init__(self):
@@ -25,33 +23,38 @@ class MasterAgent:
         self.log("MasterAgent initial response received.")
 
         match = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
-        raw_output = match.group(1).strip()
-        raw_output = raw_output.replace('\n', ' ').replace('\r', '')
-        if "__END_CONV__" in raw_output:
-            print("Conversation ended as per __END_CONV__ marker.")
-            return
-        stock_info = json.loads(raw_output)
-        ticker_symbol = stock_info.get("ticker_symbol")
-        print(f"Stock Symbol: {ticker_symbol}")
-
-        worker_responses = []
-        for agent_info in stock_info.get("agents", []):
-            agent_instance = self.instantiate_worker(agent_info.get("Agent"), agent_info.get("Task"))
-            worker_response = agent_instance.run()
-            worker_responses.append({
-                        "agent": agent_instance.name,
-                        "task": agent_info.get("Task"),
-                        "response": worker_response
-                    })
-            if agent_instance.name == "AnalystAgent":
-                        analyst_response = AnalystAgent(user_prompt).run(ticker_symbol)
-                        worker_responses.append({
-                            "agent": "AnalystAgent",
-                            "task": "Financial Analysis",
-                            "response": analyst_response
-                        })
+        if match:
+            raw_output = match.group(1).replace('\n', ' ').replace('\r', '').strip()
+            if not raw_output:
+                print("Error: No data received in <OUTPUT>.")
+                return
+        try:
+            stock_info = json.loads(raw_output)
+            ticker_symbol = stock_info.get("ticker_symbol")
+            print(f"Stock Symbol: {ticker_symbol}")
+            worker_responses = []
+            
+            for agent_info in stock_info.get("agents", []):
+                agent_instance = self.instantiate_worker(agent_info.get("Agent"), agent_info.get("Task"))
+                worker_response = agent_instance.run()
+                worker_responses.append({
+                    "agent": agent_instance.name,
+                    "task": agent_info.get("Task"),
+                    "response": worker_response
+                })
                 
-        self.generate_report(worker_responses, messages)
+                if agent_instance.name == "AnalystAgent":
+                    analyst_response = AnalystAgent(user_prompt).run(ticker_symbol)
+                    worker_responses.append({
+                        "agent": "AnalystAgent",
+                        "task": "Financial Analysis",
+                        "response": analyst_response
+                    })
+            
+            self.generate_report(worker_responses, messages)
+    
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON for agent instantiations. Error: {str(e)}")
 
     def log(self, message):
         print(f"[MasterAgent]: {message}")
@@ -218,5 +221,5 @@ def replace_image_tokens(report_file_path):
 
 if __name__ == "__main__":
     master_agent = MasterAgent()
-    master_agent.run("sony")
+    master_agent.run("Goldman Sachs")
     replace_image_tokens("report.md")
