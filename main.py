@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from clients import openai_client
 from utils import call_openai
 from openai import OpenAI
-from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FINANCIAL_DATA_ANALYSIS_PROMPT
+from PROMPTS import MASTER_AGENT_PROMPT, WORKER_AGENT_PROMPT, REPORT_PROMPT, FINANCIAL_DATA_ANALYSIS_PROMPT, META_MASTER_PROMPT
 from tools import get_ticker_data, perplexity_search
 
 load_dotenv()
@@ -17,13 +17,15 @@ class MasterAgent:
         self.model = "o3-mini"
 
     def run(self, user_prompt, max_messages=5):
-        initial_prompt = MASTER_AGENT_PROMPT.replace("__COMPANY_NAME__", user_prompt)
+        initial_prompt = META_MASTER_PROMPT.replace("__TASK__", user_prompt)
         messages = [{"role": "user", "content": initial_prompt}]
         aggregated_worker_responses = []
-        ticker_symbol = None
         final_master_response = None
 
         for iteration in range(max_messages):
+            
+            self.log(" \n\n -------- \n Master iteration " + str(iteration) + " -------- \n\n")
+            
             master_response = call_openai(messages, client=openai_client, model=self.model)
             self.log(master_response.content + f" (master iteration {iteration})")
 
@@ -47,9 +49,9 @@ class MasterAgent:
                 print(f"Failed to parse JSON in master iteration {iteration}. Error: {str(e)}")
                 break
 
-            if ticker_symbol is None:
-                ticker_symbol = instructions.get("ticker_symbol")
-                print(f"Stock Symbol: {ticker_symbol}")
+            # if ticker_symbol is None:
+            #     ticker_symbol = instructions.get("ticker_symbol")
+            #     print(f"Stock Symbol: {ticker_symbol}")
 
             # Call worker agents as indicated in the instructions
             worker_responses = []
@@ -62,20 +64,22 @@ class MasterAgent:
                     "response": agent_response
                 })
 
-                if agent_instance.name == "AnalystAgent":
-                    analyst_response = AnalystAgent(user_prompt).run(ticker_symbol)
-                    worker_responses.append({
-                        "agent": "AnalystAgent",
-                        "task": "Financial Analysis",
-                        "response": analyst_response
-                    })
+                # if agent_instance.name == "AnalystAgent":
+                #     analyst_response = AnalystAgent(user_prompt).run(ticker_symbol)
+                #     worker_responses.append({
+                #         "agent": "AnalystAgent",
+                #         "task": "Financial Analysis",
+                #         "response": analyst_response
+                #     })
             
             aggregated_worker_responses.extend(worker_responses)
 
             # Append worker responses to the conversation for further iteration
             worker_message = "Worker responses: " + json.dumps(worker_responses)
-            messages.append({"role": "user", "content": worker_message})
+            # Append the master response to the conversation
             messages.append({"role": "assistant", "content": master_response.content})
+            messages.append({"role": "user", "content": worker_message})
+            
             final_master_response = master_response
 
         self.generate_report(aggregated_worker_responses, messages)
@@ -87,6 +91,7 @@ class MasterAgent:
         return WorkerAgent(agent_name, task)
 
     def generate_report(self, worker_responses, messages):
+        self.log("Generating report...")
         report_content = "\n\n".join(
             f"Agent: {resp['agent']}\nTask: {resp['task']}\n\nWorker report: {resp['response']}\n"
             for resp in worker_responses
@@ -197,7 +202,7 @@ class WorkerAgent:
         self.task = task
         self.model = "gpt-4o"
 
-    def run(self, max_messages=3):
+    def run(self, max_messages=7):
         messages = [{"role": "system", "content": WORKER_AGENT_PROMPT.replace("__TASK__", self.task)}]
         
         for current_message_number in range(max_messages):
@@ -205,12 +210,13 @@ class WorkerAgent:
             self.log(response_message.content, current_message_number)
             
             tool_call = re.search(r'<OUTPUT>(.*?)</OUTPUT>', response_message.content, re.DOTALL)
+            if "__end_conv__" in response_message.content.lower().strip():
+                break
+            
             if tool_call:
                 tool_response = self.handle_tool_call(json.loads(tool_call.group(1)))
                 messages.append({"role": "user", "content": tool_response})
             
-            if "__end_conv__" in response_message.content.lower().strip():
-                break
             
             messages.append({"role": "assistant", "content": response_message.content})
         
