@@ -1,13 +1,12 @@
-from clients import ppxl_client
+from clients import ppxl_client, openai_client
 import yfinance as yf
 from dotenv import load_dotenv
 import os
 from PROMPTS import FINANCIAL_DATA_ANALYSIS_PROMPT, PERPLEXITY_MESSAGE_TOOL
-from openai import OpenAI
 load_dotenv()
-key = os.getenv("OPEN_AI_API_KEY")
+
 # Initialize OpenAI client and load environment variables
-client = OpenAI(api_key=key)
+client = openai_client
 
 
 def perplexity_search(query: str) -> str:
@@ -17,7 +16,7 @@ def perplexity_search(query: str) -> str:
     ]
     
     response = ppxl_client.chat.completions.create(
-        model="llama-3.1-sonar-large-128k-online",
+        model="sonar",
         messages=messages,
         temperature=0.3
     )
@@ -38,10 +37,6 @@ def get_ticker_data(ticker: str, period: str, filename: str) -> str:
         print(f"Error fetching data: {e}")
         return None
 
-
-from openai import OpenAI
-
-client = OpenAI()
 
 def analyze_data(filename, model, prompt):
     try:
